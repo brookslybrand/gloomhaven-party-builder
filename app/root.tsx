@@ -8,10 +8,6 @@ export let links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: tailwindUrl }]
 }
 
-export let loader: LoaderFunction = async () => {
-  return { date: new Date() }
-}
-
 function Document({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -32,13 +28,9 @@ function Document({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  let data = useRouteData()
   return (
     <Document>
       <Outlet />
-      <footer>
-        <p>This page was rendered at {data.date.toLocaleString()}</p>
-      </footer>
     </Document>
   )
 }

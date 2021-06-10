@@ -1,5 +1,7 @@
+import type { Party } from '@prisma/client'
 import type { MetaFunction, LoaderFunction } from 'remix'
 import { useRouteData } from 'remix'
+import { Link } from 'react-router-dom'
 import { prisma } from '../lib/prisma'
 
 export let meta: MetaFunction = () => {
@@ -10,22 +12,24 @@ export let meta: MetaFunction = () => {
 }
 
 export let loader: LoaderFunction = async () => {
-  const users = await prisma.user.findMany()
-  return { users }
+  const parties = await prisma.party.findMany()
+  return { parties }
 }
 
 export default function Index() {
-  let { users } = useRouteData()
-
-  console.log(users)
+  let { parties } = useRouteData<{ parties: Party[] }>()
 
   return (
     <div style={{ textAlign: 'center', padding: 20 }}>
-      <h2>Welcome to Remix!</h2>
-      <p>
-        <a href="https://remix.run/dashboard/docs">Check out the docs</a> to get
-        started.
-      </p>
+      <h1>Parties</h1>
+      <Link to="party/new">Create a new party</Link>
+      {parties.map(({ id, name }) => {
+        return (
+          <Link key={id} to={`party/${id}`}>
+            {name ?? 'Unnamed party'}
+          </Link>
+        )
+      })}
     </div>
   )
 }
