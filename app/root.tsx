@@ -1,16 +1,16 @@
-import type { LinksFunction, LoaderFunction } from "remix";
-import { Meta, Links, Scripts, useRouteData, LiveReload } from "remix";
-import { Outlet } from "react-router-dom";
+import type { LinksFunction, LoaderFunction } from 'remix'
+import { Meta, Links, Scripts, useRouteData, LiveReload } from 'remix'
+import { Outlet } from 'react-router-dom'
 
-import tailwindUrl from "./styles/app.css";
+import tailwindUrl from './styles/app.css'
 
 export let links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: tailwindUrl }];
-};
+  return [{ rel: 'stylesheet', href: tailwindUrl }]
+}
 
 export let loader: LoaderFunction = async () => {
-  return { date: new Date() };
-};
+  return { date: new Date() }
+}
 
 function Document({ children }: { children: React.ReactNode }) {
   return (
@@ -25,14 +25,14 @@ function Document({ children }: { children: React.ReactNode }) {
         {children}
 
         <Scripts />
-        {process.env.NODE_ENV === "development" && <LiveReload />}
+        {process.env.NODE_ENV === 'development' && <LiveReload />}
       </body>
     </html>
-  );
+  )
 }
 
 export default function App() {
-  let data = useRouteData();
+  let data = useRouteData()
   return (
     <Document>
       <Outlet />
@@ -40,7 +40,7 @@ export default function App() {
         <p>This page was rendered at {data.date.toLocaleString()}</p>
       </footer>
     </Document>
-  );
+  )
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
@@ -53,5 +53,5 @@ export function ErrorBoundary({ error }: { error: Error }) {
         uncaught errors.
       </p>
     </Document>
-  );
+  )
 }
