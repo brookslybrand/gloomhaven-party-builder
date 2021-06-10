@@ -11,10 +11,40 @@ generator client {
 }
 
 model Party {
-  id           Int     @id @default(autoincrement())
-  name         String?
+  id           Int         @id @default(autoincrement())
+  name         String
   location     String?
   notes        String?
   achievements String?
-  reputation   Int?
+  reputation   Int         @default(0)
+  members      Character[]
+
+
+  @@map("parties")
+}
+
+model Character {
+  id         Int     @id @default(autoincrement())
+  name       String
+  experience Int     @default(0)
+  gold       Int     @default(30)
+  items      String
+  checks     Int     @default(0)
+  notes      String?
+  party      Party?  @relation(fields: [partyId], references: [id])
+  partyId    Int?
+  perks      Perk[]
+
+  @@map("characters")
+}
+
+model Perk {
+  name        String
+  available   Int
+  acquired    Int
+  character   Character @relation(fields: [characterId], references: [id])
+  characterId Int
+
+  @@id([characterId, name])
+  @@map("perks")
 }

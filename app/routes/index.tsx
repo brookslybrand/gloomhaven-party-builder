@@ -1,4 +1,4 @@
-import type { Party } from '@prisma/client'
+import type { Character, Party } from '@prisma/client'
 import type { MetaFunction, LoaderFunction } from 'remix'
 import { useRouteData } from 'remix'
 import { Link } from 'react-router-dom'
@@ -11,24 +11,27 @@ export let meta: MetaFunction = () => {
   }
 }
 
-type Parties = { id: number; name: string }[]
+type Data = {
+  parties: Pick<Party, 'id' | 'name'>[]
+  characters: Pick<Character, 'id' | 'name'>[]
+}
 
-export let loader: LoaderFunction = async () => {
-  let parties: Parties = []
-  let untitledPartyCount = 0
+export let loader: LoaderFunction = async (): Promise<Data> => {
+  let partiesPromise = prisma.party.findMany().then((parties) => {
+    return parties.map(({ id, name }) => ({ id, name }))
+  })
+  let charactersPromise = prisma.character.findMany().then((characters) => {
+    return characters.map(({ id, name }) => ({ id, name }))
+  })
 
-  for (const { id, name } of await prisma.party.findMany()) {
-    parties.push({
-      id,
-      name: name ?? `Untitled party (${++untitledPartyCount})`,
-    })
+  return {
+    parties: await partiesPromise,
+    characters: await charactersPromise,
   }
-
-  return { parties }
 }
 
 export default function Index() {
-  let { parties } = useRouteData<{ parties: Parties }>()
+  let { parties, characters } = useRouteData<Data>()
 
   return (
     <div className="mx-auto max-w-max p-4">
@@ -50,6 +53,28 @@ export default function Index() {
                 <Link
                   className="text-blue-700 hover:text-blue-200"
                   to={`party/${id}`}
+                >
+                  {name}
+                </Link>
+              </ul>
+            </li>
+          )
+        })}
+
+        <Link
+          className="block text-blue-700 hover:text-blue-200"
+          to="party/new"
+        >
+          Create a new character
+        </Link>
+        <hr className="w-full border-t-1 border-gray-800" />
+        {characters.map(({ id, name }) => {
+          return (
+            <li key={id} className="flex mt-4">
+              <ul>
+                <Link
+                  className="text-blue-700 hover:text-blue-200"
+                  to={`character/${id}`}
                 >
                   {name}
                 </Link>

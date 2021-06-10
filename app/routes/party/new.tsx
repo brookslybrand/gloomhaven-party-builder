@@ -8,13 +8,17 @@ import { prisma } from '../../lib/prisma'
 export let action: ActionFunction = async ({ request }) => {
   let body = new URLSearchParams(await request.text())
 
+  let name = body.get('name')
+  if (!name) {
+    throw new Error(`Name is required`)
+  }
+
   const party = await prisma.party.create({
     data: {
-      name: body.get('name'),
+      name,
       location: body.get('location'),
       notes: body.get('notes'),
       achievements: body.get('achievements'),
-      reputation: 0,
     },
   })
 

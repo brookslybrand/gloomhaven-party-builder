@@ -41,10 +41,14 @@ export let action: ActionFunction = async ({ request, params }) => {
       } else {
         reputation = Number(body.get('reputation'))
       }
+      let name = body.get('name')
+      if (!name) {
+        throw new Error(`Name is required`)
+      }
       await prisma.party.update({
         where: { id },
         data: {
-          name: body.get('name'),
+          name,
           location: body.get('location'),
           notes: body.get('notes'),
           achievements: body.get('achievements'),
@@ -66,7 +70,12 @@ export default function PartyComponent() {
     <main className="max-w-max border border-gray-700 mx-auto mt-12 p-4">
       <form method="post" className="grid grid-cols-2 gap-y-2 items-center">
         <label htmlFor="name">Name: </label>
-        <TextInput id="name" name="name" defaultValue={party.name ?? ''} />
+        <TextInput
+          required
+          id="name"
+          name="name"
+          defaultValue={party.name ?? ''}
+        />
 
         <label htmlFor="location">Location: </label>
         <TextInput
