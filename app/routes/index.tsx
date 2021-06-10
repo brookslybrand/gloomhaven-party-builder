@@ -11,25 +11,53 @@ export let meta: MetaFunction = () => {
   }
 }
 
+type Parties = { id: number; name: string }[]
+
 export let loader: LoaderFunction = async () => {
-  const parties = await prisma.party.findMany()
+  let parties: Parties = []
+  let untitledPartyCount = 0
+
+  for (const { id, name } of await prisma.party.findMany()) {
+    parties.push({
+      id,
+      name: name ?? `Untitled party (${++untitledPartyCount})`,
+    })
+  }
+
   return { parties }
 }
 
 export default function Index() {
-  let { parties } = useRouteData<{ parties: Party[] }>()
+  let { parties } = useRouteData<{ parties: Parties }>()
 
   return (
-    <div style={{ textAlign: 'center', padding: 20 }}>
-      <h1>Parties</h1>
-      <Link to="party/new">Create a new party</Link>
-      {parties.map(({ id, name }) => {
-        return (
-          <Link key={id} to={`party/${id}`}>
-            {name ?? 'Unnamed party'}
-          </Link>
-        )
-      })}
+    <div className="mx-auto max-w-max p-4">
+      <header>
+        <h1 className="text-4xl">Parties</h1>
+      </header>
+      <main className="space-y-4 mt-4">
+        <Link
+          className="block text-blue-700 hover:text-blue-200"
+          to="party/new"
+        >
+          Create a new party
+        </Link>
+        <hr className="w-full border-t-1 border-gray-800" />
+        {parties.map(({ id, name }) => {
+          return (
+            <li key={id} className="flex mt-4">
+              <ul>
+                <Link
+                  className="text-blue-700 hover:text-blue-200"
+                  to={`party/${id}`}
+                >
+                  {name}
+                </Link>
+              </ul>
+            </li>
+          )
+        })}
+      </main>
     </div>
   )
 }
