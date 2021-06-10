@@ -3,6 +3,7 @@ node_modules
 /.cache
 /server/build
 /public/build
+.env
 
 .vercel
 app/styles/app.css
