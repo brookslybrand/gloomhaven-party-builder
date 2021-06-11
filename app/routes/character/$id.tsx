@@ -3,7 +3,7 @@ import { Form, redirect, useRouteData } from 'remix'
 import clsx from 'clsx'
 
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix'
-import { prisma } from '../../lib/prisma'
+import { prisma } from '../../db'
 import { Character } from '@prisma/client'
 
 export let meta: MetaFunction = ({ data }) => {

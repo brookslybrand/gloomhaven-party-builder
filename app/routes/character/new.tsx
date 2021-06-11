@@ -2,7 +2,7 @@ import React from 'react'
 import { Form, redirect } from 'remix'
 import clsx from 'clsx'
 
-import { prisma } from '../../lib/prisma'
+import { prisma } from '../../db'
 
 import type { ActionFunction } from 'remix'
 import { Class } from '@prisma/client'

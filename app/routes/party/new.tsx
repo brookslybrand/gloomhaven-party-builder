@@ -3,7 +3,7 @@ import { Form, redirect } from 'remix'
 import clsx from 'clsx'
 
 import type { ActionFunction } from 'remix'
-import { prisma } from '../../lib/prisma'
+import { prisma } from '../../db'
 
 export let action: ActionFunction = async ({ request }) => {
   let body = new URLSearchParams(await request.text())

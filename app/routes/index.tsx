@@ -2,7 +2,7 @@ import type { Character, Party } from '@prisma/client'
 import type { MetaFunction, LoaderFunction } from 'remix'
 import { useRouteData } from 'remix'
 import { Link } from 'react-router-dom'
-import { prisma } from '../lib/prisma'
+import { prisma } from '../db'
 
 export let meta: MetaFunction = () => {
   return {

@@ -1,6 +1,6 @@
 import { Form, redirect, useRouteData, useMatches } from 'remix'
 import clsx from 'clsx'
-import { prisma } from '../../lib/prisma'
+import { prisma } from '../../db'
 
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix'
 import type { Party, Character } from '@prisma/client'
