@@ -1,4 +1,4 @@
-import { Form, redirect, useRouteData, useMatches } from 'remix'
+import { Form, redirect, useRouteData, json } from 'remix'
 import clsx from 'clsx'
 import { prisma } from '../../db'
 
@@ -35,9 +35,15 @@ export let loader: LoaderFunction = async ({ params }) => {
     return characters.map(({ id, name }) => ({ id, name }))
   })
 
-  return {
+  const result = {
     party: await partyPromise,
     characters: await charactersPromise,
+  }
+
+  if (result.party === null) {
+    return json(result, { status: 404 })
+  } else {
+    return json(result)
   }
 }
 

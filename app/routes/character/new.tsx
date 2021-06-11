@@ -6,6 +6,7 @@ import { prisma } from '../../db'
 
 import type { ActionFunction } from 'remix'
 import { Class } from '@prisma/client'
+import { classPerks } from '../../class-perks'
 
 export let action: ActionFunction = async ({ request }) => {
   let body = new URLSearchParams(await request.text())
@@ -21,10 +22,20 @@ export let action: ActionFunction = async ({ request }) => {
     throw new Error(`Class ${classValue} is not allowed`)
   }
 
+  const perks = classPerks.get(classValue)
+  if (perks === undefined) {
+    throw new Error(`Perks net setup for class ${classValue}`)
+  }
+
   const character = await prisma.character.create({
     data: {
       name,
       class: classValue,
+      perks: {
+        createMany: {
+          data: perks,
+        },
+      },
     },
   })
 

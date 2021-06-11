@@ -1,10 +1,11 @@
 import React from 'react'
-import { Form, redirect, useRouteData } from 'remix'
+import { json, redirect, useRouteData } from 'remix'
 import clsx from 'clsx'
+import { prisma } from '../../db'
 
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix'
-import { prisma } from '../../db'
-import { Character } from '@prisma/client'
+import type { Character, Perk } from '@prisma/client'
+import { sortPerks } from '../../class-perks'
 
 export let meta: MetaFunction = ({ data }) => {
   return {
@@ -12,17 +13,39 @@ export let meta: MetaFunction = ({ data }) => {
   }
 }
 
+type Data =
+  | (Character & {
+      perks: {
+        name: string
+        available: number
+        acquired: number
+      }[]
+    })
+  | null
 export let loader: LoaderFunction = async ({ params }) => {
   let character = await prisma.character.findFirst({
     where: {
       id: Number(params.id),
     },
+    include: {
+      perks: {
+        select: {
+          name: true,
+          available: true,
+          acquired: true,
+        },
+      },
+    },
   })
 
-  return character
+  if (!character) {
+    return json(character, { status: 404 })
+  }
+  let perks = sortPerks(character.class, character.perks)
+  return json({ ...character, perks })
 }
 
-export let action: ActionFunction = async ({ request, params }) => {
+export let action: ActionFunction = async ({ request, params, context }) => {
   let id = Number(params.id)
   let body = new URLSearchParams(await request.text())
   // we use hidden method names so this app can run without JS
@@ -30,7 +53,12 @@ export let action: ActionFunction = async ({ request, params }) => {
 
   switch (method) {
     case 'delete': {
-      await prisma.character.delete({ where: { id } })
+      let deletePerks = prisma.perk.deleteMany({ where: { characterId: id } })
+      let deleteCharacter = prisma.character.delete({
+        where: { id },
+        include: { perks: true },
+      })
+      await prisma.$transaction([deletePerks, deleteCharacter])
       return redirect(`/`)
     }
     case 'post': {
@@ -38,7 +66,8 @@ export let action: ActionFunction = async ({ request, params }) => {
       if (!name) {
         throw new Error(`Name is required`)
       }
-      await prisma.character.update({
+
+      let characterUpdatePromise = prisma.character.update({
         where: { id },
         data: {
           name,
@@ -49,6 +78,9 @@ export let action: ActionFunction = async ({ request, params }) => {
           notes: body.get('notes'),
         },
       })
+      let perksUpdatePromise = updatePerks(id, body)
+      await Promise.all([characterUpdatePromise, perksUpdatePromise])
+
       return redirect(`/character/${params.id}`)
     }
     default: {
@@ -67,8 +99,57 @@ function handleNumericValue(n: unknown) {
   }
 }
 
+async function updatePerks(characterId: number, body: URLSearchParams) {
+  let character = await prisma.character.findUnique({
+    where: { id: characterId },
+    select: { perks: true },
+  })
+
+  if (character === null) {
+    throw new Error(`No character found for this user, something is wrong`)
+  }
+  let { perks } = character
+  let perkMap = new Map<string, Perk>() // keep track of the perks more easily
+  for (let perk of perks) {
+    // reset all perks to zero so we remove the perks that don't have checks
+    // TODO: clean this up so that we don't have to do all n writes the database
+    perk.acquired = 0
+    perkMap.set(perk.name, perk)
+  }
+
+  for (let key of body.keys()) {
+    if (!key.startsWith(`perk-`)) continue
+
+    // get the perk name out of the pattern perk-name of perk-idx
+    let perkName = key.replace(/^perk-/g, '').replace(/-\d+$/g, '')
+    let perk = perkMap.get(perkName)
+    if (perk === undefined) {
+      throw new Error(`No perk found with the name ${perkName}`)
+    }
+    // user can't have more perks than are available
+    if (perk.acquired < perk.available) {
+      perk.acquired++
+    }
+  }
+
+  const updatesPerks = Promise.all(
+    perks.map((perk) => {
+      return prisma.perk.update({
+        where: { characterId_name: { characterId, name: perk.name } },
+        data: perk,
+      })
+    })
+  )
+
+  return updatesPerks
+}
+
 export default function CharacterComponent() {
-  const character = useRouteData<Character>()
+  const character = useRouteData<Data>()
+
+  if (!character) {
+    return <h1>Character not found</h1>
+  }
 
   return (
     <main className="max-w-max border border-gray-700 mx-auto mt-12 p-4">
@@ -130,7 +211,7 @@ export default function CharacterComponent() {
           defaultValue={character.notes ?? ''}
         />
 
-        {/* TODO: add perks */}
+        <Perks perks={character.perks} />
 
         <button
           type="submit"
@@ -171,6 +252,32 @@ function TextInput({
       )}
       {...props}
     />
+  )
+}
+
+// TODO: look into whether this is correct accessability-wise
+function Perks({ perks }: { perks: Perk[] }) {
+  return (
+    <>
+      {perks.map(({ name, available, acquired }) => (
+        <fieldset key={name} className="col-span-2 flex flex-row space-x-1">
+          {Array.from({ length: available }).map((_, idx) => (
+            <input
+              key={idx}
+              className="mt-1 mr-1"
+              type="checkbox"
+              name={`perk-${name}-${idx}`}
+              defaultChecked={idx < acquired}
+            />
+          ))}
+
+          {/* legend has to be inside of a div for it to display properly—dumb */}
+          <div>
+            <legend>{name}</legend>
+          </div>
+        </fieldset>
+      ))}
+    </>
   )
 }
 
