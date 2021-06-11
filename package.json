@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@prisma/client": "^2.24.1",
+    "@reach/visually-hidden": "^0.15.0",
     "@remix-run/react": "^0.17.5",
     "@remix-run/vercel": "^0.17.5",
     "@vercel/node": "^1.8.3",
