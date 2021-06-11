@@ -12,6 +12,7 @@
     "prebuild": "prisma generate && npm run build:css",
     "build": "remix build",
     "start": "vercel dev",
+    "deploy": "npm run build && vercel deploy --prod",
     "lint": "eslint --ignore-path .gitignore --ext .js,.ts,.tsx ."
   },
   "dependencies": {
