@@ -25,12 +25,15 @@ export let action: ActionFunction = async ({ request }) => {
   return redirect(`/party/${party.id}`)
 }
 
-export default function Party() {
+export default function NewParty() {
   return (
     <main className="max-w-max border border-gray-700 mx-auto mt-12 p-4">
-      <form method="post" className="grid grid-cols-2 gap-y-2 items-center">
+      <form
+        method="post"
+        className="grid grid-cols-2 gap-y-2 gap-x-1 items-center"
+      >
         <label htmlFor="name">Name: </label>
-        <TextInput id="name" name="name" />
+        <TextInput required id="name" name="name" />
 
         <label htmlFor="location">Location: </label>
         <TextInput id="location" name="location" />

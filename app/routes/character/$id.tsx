@@ -4,7 +4,7 @@ import clsx from 'clsx'
 
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix'
 import { prisma } from '../../lib/prisma'
-import { Party } from '@prisma/client'
+import { Character } from '@prisma/client'
 
 export let meta: MetaFunction = ({ data }) => {
   return {
@@ -13,13 +13,13 @@ export let meta: MetaFunction = ({ data }) => {
 }
 
 export let loader: LoaderFunction = async ({ params }) => {
-  let party = await prisma.party.findFirst({
+  let character = await prisma.character.findFirst({
     where: {
       id: Number(params.id),
     },
   })
 
-  return party
+  return character
 }
 
 export let action: ActionFunction = async ({ request, params }) => {
@@ -30,31 +30,26 @@ export let action: ActionFunction = async ({ request, params }) => {
 
   switch (method) {
     case 'delete': {
-      await prisma.party.delete({ where: { id } })
+      await prisma.character.delete({ where: { id } })
       return redirect(`/`)
     }
     case 'post': {
-      let reputation
-      if (!body.get('reputation')) {
-        reputation = undefined
-      } else {
-        reputation = Number(body.get('reputation'))
-      }
       let name = body.get('name')
       if (!name) {
         throw new Error(`Name is required`)
       }
-      await prisma.party.update({
+      await prisma.character.update({
         where: { id },
         data: {
           name,
-          location: body.get('location'),
-          notes: body.get('notes'),
-          achievements: body.get('achievements'),
-          reputation: reputation,
+          experience: handleNumericValue(body.get('experience')),
+          gold: handleNumericValue(body.get('gold')),
+          items: body.get('items'),
+          checks: handleNumericValue(body.get('checks')),
+          notes: body.get('items'),
         },
       })
-      return redirect(`/party/${params.id}`)
+      return redirect(`/character/${params.id}`)
     }
     default: {
       throw new Error(`Method ${method} not available`)
@@ -62,8 +57,18 @@ export let action: ActionFunction = async ({ request, params }) => {
   }
 }
 
-export default function PartyComponent() {
-  const party = useRouteData<Party>()
+function handleNumericValue(n: unknown) {
+  if (!n || typeof n !== 'string') return undefined
+  let number = Number(n)
+  if (Number.isNaN(number) || number < 0) {
+    return undefined
+  } else {
+    return number
+  }
+}
+
+export default function CharacterComponent() {
+  const character = useRouteData<Character>()
 
   return (
     <main className="max-w-max border border-gray-700 mx-auto mt-12 p-4">
@@ -71,40 +76,72 @@ export default function PartyComponent() {
         method="post"
         className="grid grid-cols-2 gap-y-2 gap-x-1 items-center"
       >
+        <label htmlFor="class">Class (cannot be changed): </label>
+        <select
+          className="capitalize border border-gray-700"
+          disabled
+          id="class"
+          name="class"
+        >
+          <option key={character.class} value={character.class}>
+            {character.class.toLowerCase()}
+          </option>
+        </select>
+
         <label htmlFor="name">Name: </label>
         <TextInput
           required
           id="name"
           name="name"
-          defaultValue={party.name ?? ''}
+          defaultValue={character.name ?? ''}
         />
 
-        <label htmlFor="location">Location: </label>
+        <label htmlFor="experience">Experience: </label>
         <TextInput
-          id="location"
-          name="location"
-          defaultValue={party.location ?? ''}
+          id="experience"
+          name="experience"
+          type="number"
+          min={0}
+          defaultValue={character.experience}
+        />
+
+        <label htmlFor="gold">Gold: </label>
+        <TextInput
+          required
+          id="gold"
+          name="gold"
+          type="number"
+          min={0}
+          defaultValue={character.gold}
+        />
+
+        <label htmlFor="items">Items: </label>
+        <TextInput
+          required
+          id="items"
+          name="items"
+          defaultValue={character.items ?? ''}
+        />
+
+        <label htmlFor="checks">Checks: </label>
+        <TextInput
+          required
+          id="checks"
+          name="checks"
+          type="number"
+          min={0}
+          defaultValue={character.checks}
         />
 
         <label htmlFor="notes">Notes: </label>
-        <TextInput id="notes" name="notes" defaultValue={party.notes ?? ''} />
-
-        <label htmlFor="achievements">Achievements: </label>
         <TextInput
-          id="achievements"
-          name="achievements"
-          defaultValue={party.achievements ?? ''}
+          required
+          id="notes"
+          name="notes"
+          defaultValue={character.notes ?? ''}
         />
 
-        <label htmlFor="reputation">Reputation: </label>
-        <TextInput
-          id="reputation"
-          name="reputation"
-          type="number"
-          min={-20}
-          max={20}
-          defaultValue={party.reputation ?? ''}
-        />
+        {/* TODO: add perks */}
 
         <button
           type="submit"
@@ -113,6 +150,7 @@ export default function PartyComponent() {
           Submit
         </button>
       </form>
+
       <form method="post" className="mt-4 grid grid-cols-2 items-center">
         <input
           // need this hidden input because regular forms don't all for the delete method https://docs.remix.run/v0.17/api/remix/#form-method

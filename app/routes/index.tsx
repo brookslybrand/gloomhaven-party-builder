@@ -40,48 +40,56 @@ export default function Index() {
       </header>
       <main className="space-y-4 mt-4">
         <Link
-          className="block text-blue-700 hover:text-blue-200"
+          className="block text-xl text-blue-700 hover:text-blue-200"
           to="party/new"
         >
           Create a new party
         </Link>
         <hr className="w-full border-t-1 border-gray-800" />
-        {parties.map(({ id, name }) => {
-          return (
-            <li key={id} className="flex mt-4">
-              <ul>
-                <Link
-                  className="text-blue-700 hover:text-blue-200"
-                  to={`party/${id}`}
-                >
-                  {name}
-                </Link>
-              </ul>
-            </li>
-          )
-        })}
+        {parties.length ? (
+          parties.map(({ id, name }) => {
+            return (
+              <li key={id} className="flex mt-4">
+                <ul>
+                  <Link
+                    className="text-blue-700 hover:text-blue-200"
+                    to={`party/${id}`}
+                  >
+                    {name}
+                  </Link>
+                </ul>
+              </li>
+            )
+          })
+        ) : (
+          <p>There are currently no parties</p>
+        )}
 
         <Link
-          className="block text-blue-700 hover:text-blue-200"
-          to="party/new"
+          className="block text-xl text-blue-700 hover:text-blue-200"
+          to="character/new"
         >
           Create a new character
         </Link>
         <hr className="w-full border-t-1 border-gray-800" />
-        {characters.map(({ id, name }) => {
-          return (
-            <li key={id} className="flex mt-4">
-              <ul>
-                <Link
-                  className="text-blue-700 hover:text-blue-200"
-                  to={`character/${id}`}
-                >
-                  {name}
-                </Link>
-              </ul>
-            </li>
-          )
-        })}
+        {characters.length > 0 ? (
+          characters.map(({ id, name }) => {
+            return (
+              <li key={id} className="flex mt-4">
+                <ul>
+                  <Link
+                    className="text-blue-700 hover:text-blue-200"
+                    to={`character/${id}`}
+                  >
+                    {name}
+                  </Link>
+                </ul>
+              </li>
+            )
+          })
+        ) : (
+          <p>There are currently no characters</p>
+        )}
       </main>
     </div>
   )
