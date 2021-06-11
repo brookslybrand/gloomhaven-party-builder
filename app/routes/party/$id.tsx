@@ -1,39 +1,85 @@
-import React from 'react'
-import { Form, redirect, useRouteData } from 'remix'
+import { Form, redirect, useRouteData, useMatches } from 'remix'
 import clsx from 'clsx'
+import { prisma } from '../../lib/prisma'
 
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix'
-import { prisma } from '../../lib/prisma'
-import { Party } from '@prisma/client'
+import type { Party, Character } from '@prisma/client'
 
-export let meta: MetaFunction = ({ data }) => {
+export let meta: MetaFunction = ({ data, parentsData }) => {
   return {
     title: data.name,
   }
 }
 
+type Data = {
+  party:
+    | (Party & {
+        members: Character[]
+      })
+    | null
+  characters: {
+    id: number
+    name: string
+  }[]
+}
 export let loader: LoaderFunction = async ({ params }) => {
-  let party = await prisma.party.findFirst({
+  let partyPromise = prisma.party.findFirst({
     where: {
       id: Number(params.id),
     },
+    include: {
+      members: true,
+    },
+  })
+  let charactersPromise = prisma.character.findMany().then((characters) => {
+    return characters.map(({ id, name }) => ({ id, name }))
   })
 
-  return party
+  return {
+    party: await partyPromise,
+    characters: await charactersPromise,
+  }
 }
 
 export let action: ActionFunction = async ({ request, params }) => {
   let id = Number(params.id)
+
   let body = new URLSearchParams(await request.text())
+
   // we use hidden method names so this app can run without JS
   let method = (body.get('_method') ?? request.method).toLowerCase()
 
   switch (method) {
     case 'delete': {
+      if (body.has('deleteCharacter')) {
+        await prisma.party.update({
+          where: { id },
+          data: {
+            members: {
+              disconnect: { id: Number(body.get('deleteCharacter')) },
+            },
+          },
+        })
+        return redirect(`/party/${params.id}`)
+      }
+
       await prisma.party.delete({ where: { id } })
       return redirect(`/`)
     }
     case 'post': {
+      // handle adding new characters
+      if (body.has('addCharacter')) {
+        await prisma.party.update({
+          where: { id },
+          data: {
+            members: {
+              connect: { id: Number(body.get('addCharacter')) },
+            },
+          },
+        })
+        return redirect(`/party/${params.id}`)
+      }
+
       let reputation
       if (!body.get('reputation')) {
         reputation = undefined
@@ -54,6 +100,7 @@ export let action: ActionFunction = async ({ request, params }) => {
           reputation: reputation,
         },
       })
+
       return redirect(`/party/${params.id}`)
     }
     default: {
@@ -63,7 +110,10 @@ export let action: ActionFunction = async ({ request, params }) => {
 }
 
 export default function PartyComponent() {
-  const party = useRouteData<Party>()
+  let { party } = useRouteData<Data>()
+  if (party === null) {
+    return <h1>No party found</h1>
+  }
 
   return (
     <main className="max-w-max border border-gray-700 mx-auto mt-12 p-4">
@@ -113,6 +163,7 @@ export default function PartyComponent() {
           Submit
         </button>
       </form>
+      <CharacterSelect />
       <form method="post" className="mt-4 grid grid-cols-2 items-center">
         <input
           // need this hidden input because regular forms don't all for the delete method https://docs.remix.run/v0.17/api/remix/#form-method
@@ -144,5 +195,74 @@ function TextInput({
       )}
       {...props}
     />
+  )
+}
+
+function CharacterSelect() {
+  let { party, characters } = useRouteData<Data>()
+
+  if (party === null) return null
+
+  let partyMembersIds = new Set(party.members.map(({ id }) => id))
+  let availableCharacters = characters.filter(
+    ({ id }) => !partyMembersIds.has(id)
+  )
+
+  return (
+    <section className="mt-2 space-y-2">
+      {party.members.map(({ id, name }) => {
+        let htmlId = `delete-${id}`
+        return (
+          <form
+            key={htmlId}
+            method="post"
+            className="grid grid-cols-2 gap-y-2 items-center"
+          >
+            <input
+              // need this hidden input because regular forms don't all for the delete method https://docs.remix.run/v0.17/api/remix/#form-method
+              type="hidden"
+              name="_method"
+              value="delete"
+              className="hidden"
+            />
+            <p>{name}</p>
+            <button
+              type="submit"
+              name="deleteCharacter"
+              value={id}
+              className="col-start-2 border-2 border-red-700 hover:ring-1 hover:ring-red-200"
+              aria-label={`Remove ${name} from party`}
+            >
+              Remove
+            </button>
+          </form>
+        )
+      })}
+      {availableCharacters.length > 0 ? (
+        <form
+          name="testing"
+          method="post"
+          className="grid grid-cols-2 gap-y-2 items-center"
+        >
+          <select
+            aria-label="select character"
+            id="addCharacter"
+            name="addCharacter"
+          >
+            {availableCharacters.map(({ id, name }) => (
+              <option key={id} value={id}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="col-start-2 border border-green-700 hover:ring-1 hover:ring-green-200"
+          >
+            Add character
+          </button>
+        </form>
+      ) : null}
+    </section>
   )
 }

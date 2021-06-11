@@ -17,8 +17,6 @@ type Data = {
 }
 
 export let loader: LoaderFunction = async (): Promise<Data> => {
-  console.log(Object.keys(prisma))
-
   let partiesPromise = prisma.party.findMany().then((parties) => {
     return parties.map(({ id, name }) => ({ id, name }))
   })
