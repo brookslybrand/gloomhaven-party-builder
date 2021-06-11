@@ -55,7 +55,7 @@ export default function NewCharacter() {
         >
           {Object.values(Class).map((classValue) => (
             <option key={classValue} value={classValue}>
-              {classValue.toLowerCase()}
+              {capitalize(classValue)}
             </option>
           ))}
         </select>
@@ -88,4 +88,10 @@ function TextInput({
       {...props}
     />
   )
+}
+
+// taken from https://www.samanthaming.com/pictorials/how-to-capitalize-a-string/#more-solutions
+function capitalize(s: string) {
+  const lower = s.toLowerCase()
+  return `${s.charAt(0).toUpperCase()}${lower.slice(1)}`
 }

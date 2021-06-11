@@ -46,7 +46,7 @@ export let action: ActionFunction = async ({ request, params }) => {
           gold: handleNumericValue(body.get('gold')),
           items: body.get('items'),
           checks: handleNumericValue(body.get('checks')),
-          notes: body.get('items'),
+          notes: body.get('notes'),
         },
       })
       return redirect(`/character/${params.id}`)
@@ -76,17 +76,8 @@ export default function CharacterComponent() {
         method="post"
         className="grid grid-cols-2 gap-y-2 gap-x-1 items-center"
       >
-        <label htmlFor="class">Class (cannot be changed): </label>
-        <select
-          className="capitalize border border-gray-700"
-          disabled
-          id="class"
-          name="class"
-        >
-          <option key={character.class} value={character.class}>
-            {character.class.toLowerCase()}
-          </option>
-        </select>
+        <p>Class:</p>
+        <p className="capitalize">{capitalize(character.class)}</p>
 
         <label htmlFor="name">Name: </label>
         <TextInput
@@ -117,7 +108,6 @@ export default function CharacterComponent() {
 
         <label htmlFor="items">Items: </label>
         <TextInput
-          required
           id="items"
           name="items"
           defaultValue={character.items ?? ''}
@@ -135,7 +125,6 @@ export default function CharacterComponent() {
 
         <label htmlFor="notes">Notes: </label>
         <TextInput
-          required
           id="notes"
           name="notes"
           defaultValue={character.notes ?? ''}
@@ -183,4 +172,10 @@ function TextInput({
       {...props}
     />
   )
+}
+
+// taken from https://www.samanthaming.com/pictorials/how-to-capitalize-a-string/#more-solutions
+function capitalize(s: string) {
+  const lower = s.toLowerCase()
+  return `${s.charAt(0).toUpperCase()}${lower.slice(1)}`
 }
