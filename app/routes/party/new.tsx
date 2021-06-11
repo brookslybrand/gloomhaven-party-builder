@@ -14,12 +14,7 @@ export let action: ActionFunction = async ({ request }) => {
   }
 
   const party = await prisma.party.create({
-    data: {
-      name,
-      location: body.get('location'),
-      notes: body.get('notes'),
-      achievements: body.get('achievements'),
-    },
+    data: { name },
   })
 
   return redirect(`/party/${party.id}`)
@@ -34,15 +29,6 @@ export default function NewParty() {
       >
         <label htmlFor="name">Name: </label>
         <TextInput required id="name" name="name" />
-
-        <label htmlFor="location">Location: </label>
-        <TextInput id="location" name="location" />
-
-        <label htmlFor="notes">Notes: </label>
-        <TextInput id="notes" name="notes" />
-
-        <label htmlFor="achievements">Achievements: </label>
-        <TextInput id="achievements" name="achievements" />
 
         <button
           type="submit"

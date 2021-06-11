@@ -32,8 +32,7 @@ model Character {
   items      String?
   checks     Int     @default(0)
   notes      String?
-  party      Party?  @relation(fields: [partyId], references: [id])
-  partyId    Int?
+  parties    Party[]
   perks      Perk[]
 
   @@map("characters")
