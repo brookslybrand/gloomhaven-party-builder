@@ -1,5 +1,5 @@
 import React from 'react'
-import { Form, redirect } from 'remix'
+import { redirect } from 'remix'
 import clsx from 'clsx'
 
 import type { ActionFunction } from 'remix'

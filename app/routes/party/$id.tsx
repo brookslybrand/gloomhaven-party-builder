@@ -1,4 +1,4 @@
-import { Form, redirect, useRouteData, json } from 'remix'
+import { redirect, useRouteData, json } from 'remix'
 import clsx from 'clsx'
 import { prisma } from '../../db'
 
@@ -18,14 +18,14 @@ type Data = {
       })
     | null
   characters: {
-    id: number
+    id: string
     name: string
   }[]
 }
 export let loader: LoaderFunction = async ({ params }) => {
   let partyPromise = prisma.party.findFirst({
     where: {
-      id: Number(params.id),
+      id: params.id,
     },
     include: {
       members: true,
@@ -48,7 +48,7 @@ export let loader: LoaderFunction = async ({ params }) => {
 }
 
 export let action: ActionFunction = async ({ request, params }) => {
-  let id = Number(params.id)
+  let id = params.id
 
   let body = new URLSearchParams(await request.text())
 
@@ -62,7 +62,7 @@ export let action: ActionFunction = async ({ request, params }) => {
           where: { id },
           data: {
             members: {
-              disconnect: { id: Number(body.get('deleteCharacter')) },
+              disconnect: { id: body.get('deleteCharacter') ?? '' },
             },
           },
         })
@@ -85,7 +85,7 @@ export let action: ActionFunction = async ({ request, params }) => {
           where: { id },
           data: {
             members: {
-              connect: { id: Number(body.get('addCharacter')) },
+              connect: { id: body.get('addCharacter') ?? '' },
             },
           },
         })

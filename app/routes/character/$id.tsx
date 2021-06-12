@@ -15,17 +15,13 @@ export let meta: MetaFunction = ({ data }) => {
 
 type Data =
   | (Character & {
-      perks: {
-        name: string
-        available: number
-        acquired: number
-      }[]
+      perks: Omit<Perk, 'characterId'>[]
     })
   | null
 export let loader: LoaderFunction = async ({ params }) => {
   let character = await prisma.character.findFirst({
     where: {
-      id: Number(params.id),
+      id: params.id,
     },
     include: {
       perks: {
@@ -46,7 +42,7 @@ export let loader: LoaderFunction = async ({ params }) => {
 }
 
 export let action: ActionFunction = async ({ request, params, context }) => {
-  let id = Number(params.id)
+  let id = params.id
   let body = new URLSearchParams(await request.text())
   // we use hidden method names so this app can run without JS
   let method = (body.get('_method') ?? request.method).toLowerCase()
@@ -99,7 +95,7 @@ function handleNumericValue(n: unknown) {
   }
 }
 
-async function updatePerks(characterId: number, body: URLSearchParams) {
+async function updatePerks(characterId: string, body: URLSearchParams) {
   let character = await prisma.character.findUnique({
     where: { id: characterId },
     select: { perks: true },
@@ -256,7 +252,7 @@ function TextInput({
 }
 
 // TODO: look into whether this is correct accessability-wise
-function Perks({ perks }: { perks: Perk[] }) {
+function Perks({ perks }: { perks: Omit<Perk, 'characterId'>[] }) {
   return (
     <>
       {perks.map(({ name, available, acquired }) => (

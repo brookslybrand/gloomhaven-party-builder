@@ -11,7 +11,7 @@ generator client {
 }
 
 model Party {
-  id           Int         @id @default(autoincrement())
+  id           String      @id @default(cuid())
   name         String
   location     String?
   notes        String?
@@ -24,7 +24,7 @@ model Party {
 }
 
 model Character {
-  id         Int     @id @default(autoincrement())
+  id         String  @id @default(cuid())
   class      Class
   name       String
   experience Int     @default(0)
@@ -33,7 +33,7 @@ model Character {
   checks     Int     @default(0)
   notes      String?
   Party      Party?  @relation(fields: [partyId], references: [id])
-  partyId    Int?
+  partyId    String?
   perks      Perk[]
 
   @@map("characters")
@@ -44,7 +44,7 @@ model Perk {
   available   Int
   acquired    Int
   character   Character @relation(fields: [characterId], references: [id])
-  characterId Int
+  characterId String
 
   @@id([characterId, name])
   @@map("perks")
