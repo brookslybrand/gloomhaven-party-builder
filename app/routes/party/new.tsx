@@ -1,9 +1,9 @@
-import React from 'react'
 import { redirect } from 'remix'
-import clsx from 'clsx'
+
+import { prisma } from '../../db'
+import { TextInput } from '../../components'
 
 import type { ActionFunction } from 'remix'
-import { prisma } from '../../db'
 
 export let action: ActionFunction = async ({ request }) => {
   let body = new URLSearchParams(await request.text())
@@ -38,21 +38,5 @@ export default function NewParty() {
         </button>
       </form>
     </main>
-  )
-}
-
-function TextInput({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<'input'>) {
-  return (
-    <input
-      type="text"
-      className={clsx(
-        'p-1 border border-blue-600 hover:ring-1 hover:ring-blue-200',
-        className
-      )}
-      {...props}
-    />
   )
 }

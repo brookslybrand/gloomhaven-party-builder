@@ -1,12 +1,13 @@
-import React from 'react'
 import { redirect } from 'remix'
 import clsx from 'clsx'
 
+import { TextInput } from '../../components'
 import { prisma } from '../../db'
+import { classPerks } from '../../class-perks'
+import { capitalize } from '../../utils'
+import { Class } from '@prisma/client' // this is used as a value as well as a type
 
 import type { ActionFunction } from 'remix'
-import { Class } from '@prisma/client'
-import { classPerks } from '../../class-perks'
 
 export let action: ActionFunction = async ({ request }) => {
   let body = new URLSearchParams(await request.text())
@@ -83,26 +84,4 @@ export default function NewCharacter() {
       </form>
     </main>
   )
-}
-
-function TextInput({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<'input'>) {
-  return (
-    <input
-      type="text"
-      className={clsx(
-        'p-1 border border-blue-600 hover:ring-1 hover:ring-blue-200',
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-// taken from https://www.samanthaming.com/pictorials/how-to-capitalize-a-string/#more-solutions
-function capitalize(s: string) {
-  const lower = s.toLowerCase()
-  return `${s.charAt(0).toUpperCase()}${lower.slice(1)}`
 }

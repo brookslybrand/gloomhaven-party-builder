@@ -6,8 +6,8 @@ import { prisma } from '../db'
 
 export let meta: MetaFunction = () => {
   return {
-    title: 'Remix Starter',
-    description: 'Welcome to remix!',
+    title: 'Gloomhaven Party Builder',
+    description: 'Build parties and create characters for Gloomhaven',
   }
 }
 
@@ -36,7 +36,7 @@ export default function Index() {
   return (
     <div className="mx-auto max-w-max p-4">
       <header>
-        <h1 className="text-4xl">Parties</h1>
+        <h1 className="text-6xl">Gloomhaven Party Builder</h1>
       </header>
       <main className="space-y-4 mt-4">
         <section>

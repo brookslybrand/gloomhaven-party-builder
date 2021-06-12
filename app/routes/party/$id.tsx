@@ -1,13 +1,14 @@
 import { redirect, useRouteData, json } from 'remix'
-import clsx from 'clsx'
+
+import { TextInput } from '../../components'
 import { prisma } from '../../db'
 
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix'
 import type { Party, Character } from '@prisma/client'
 
-export let meta: MetaFunction = ({ data, parentsData }) => {
+export let meta: MetaFunction = ({ data }) => {
   return {
-    title: data.name,
+    title: (data as Data).party?.name ?? 'No party found',
   }
 }
 
@@ -191,22 +192,6 @@ export default function PartyComponent() {
         </button>
       </form>
     </main>
-  )
-}
-
-function TextInput({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<'input'>) {
-  return (
-    <input
-      type="text"
-      className={clsx(
-        'p-1 border border-blue-600 hover:ring-1 hover:ring-blue-200',
-        className
-      )}
-      {...props}
-    />
   )
 }
 

@@ -1,15 +1,16 @@
-import React from 'react'
 import { json, redirect, useRouteData } from 'remix'
-import clsx from 'clsx'
+
+import { TextInput } from '../../components'
 import { prisma } from '../../db'
+import { sortPerks } from '../../class-perks'
+import { capitalize } from '../../utils'
 
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix'
 import type { Character, Perk } from '@prisma/client'
-import { sortPerks } from '../../class-perks'
 
 export let meta: MetaFunction = ({ data }) => {
   return {
-    title: data.name,
+    title: (data as Data)?.name ?? 'No character found',
   }
 }
 
@@ -235,22 +236,6 @@ export default function CharacterComponent() {
   )
 }
 
-function TextInput({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<'input'>) {
-  return (
-    <input
-      type="text"
-      className={clsx(
-        'p-1 border border-blue-600 hover:ring-1 hover:ring-blue-200',
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
 // TODO: look into whether this is correct accessability-wise
 function Perks({ perks }: { perks: Omit<Perk, 'characterId'>[] }) {
   return (
@@ -275,10 +260,4 @@ function Perks({ perks }: { perks: Omit<Perk, 'characterId'>[] }) {
       ))}
     </>
   )
-}
-
-// taken from https://www.samanthaming.com/pictorials/how-to-capitalize-a-string/#more-solutions
-function capitalize(s: string) {
-  const lower = s.toLowerCase()
-  return `${s.charAt(0).toUpperCase()}${lower.slice(1)}`
 }
