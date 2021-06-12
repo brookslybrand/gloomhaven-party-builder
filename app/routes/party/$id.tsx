@@ -69,7 +69,13 @@ export let action: ActionFunction = async ({ request, params }) => {
         return redirect(`/party/${params.id}`)
       }
 
-      await prisma.party.delete({ where: { id } })
+      let updateCharacters = prisma.character.updateMany({
+        where: { partyId: id },
+        data: { partyId: null },
+      })
+      let deleteParty = prisma.party.delete({ where: { id } })
+      await prisma.$transaction([updateCharacters, deleteParty])
+
       return redirect(`/`)
     }
     case 'post': {
