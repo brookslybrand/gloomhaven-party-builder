@@ -1,6 +1,6 @@
-import { json, redirect, useRouteData } from 'remix'
+import { json, redirect, usePendingFormSubmit, useRouteData } from 'remix'
 
-import { TextInput } from '../../components'
+import { Button, Form, TextInput } from '../../components'
 import { prisma } from '../../db'
 import { sortPerks } from '../../class-perks'
 import { capitalize } from '../../utils'
@@ -142,18 +142,19 @@ async function updatePerks(characterId: string, body: URLSearchParams) {
 }
 
 export default function CharacterComponent() {
-  const character = useRouteData<Data>()
+  let character = useRouteData<Data>()
+  let pendingForm = usePendingFormSubmit()
 
   if (!character) {
     return <h1>Character not found</h1>
   }
 
+  let disabled = !!pendingForm
+  let pendingSubmit = !!pendingForm && pendingForm.data.has('name')
+
   return (
     <main className="max-w-max border border-gray-700 mx-auto mt-12 p-4">
-      <form
-        method="post"
-        className="grid grid-cols-2 gap-y-2 gap-x-1 items-center"
-      >
+      <Form method="post" className="grid grid-cols-2 gap-2 items-center">
         <p>Class:</p>
         <p className="capitalize">{capitalize(character.class)}</p>
 
@@ -163,6 +164,7 @@ export default function CharacterComponent() {
           id="name"
           name="name"
           defaultValue={character.name ?? ''}
+          disabled={disabled}
         />
 
         <label htmlFor="experience">Experience: </label>
@@ -172,6 +174,7 @@ export default function CharacterComponent() {
           type="number"
           min={0}
           defaultValue={character.experience}
+          disabled={disabled}
         />
 
         <label htmlFor="gold">Gold: </label>
@@ -182,6 +185,7 @@ export default function CharacterComponent() {
           type="number"
           min={0}
           defaultValue={character.gold}
+          disabled={disabled}
         />
 
         <label htmlFor="items">Items: </label>
@@ -189,6 +193,7 @@ export default function CharacterComponent() {
           id="items"
           name="items"
           defaultValue={character.items ?? ''}
+          disabled={disabled}
         />
 
         <label htmlFor="checks">Checks: </label>
@@ -199,6 +204,7 @@ export default function CharacterComponent() {
           type="number"
           min={0}
           defaultValue={character.checks}
+          disabled={disabled}
         />
 
         <label htmlFor="notes">Notes: </label>
@@ -206,38 +212,24 @@ export default function CharacterComponent() {
           id="notes"
           name="notes"
           defaultValue={character.notes ?? ''}
+          disabled={disabled}
         />
 
         <Perks perks={character.perks} />
 
-        <button
-          type="submit"
-          className="col-start-2 border border-green-700 hover:ring-1 hover:ring-green-200"
-        >
-          Submit
-        </button>
-      </form>
+        <Button type="submit" className="col-start-2" disabled={disabled}>
+          {pendingSubmit ? `Updating ${character.name}...` : 'Submit'}
+        </Button>
+      </Form>
 
-      <form method="post" className="mt-4 grid grid-cols-2 items-center">
-        <input
-          // need this hidden input because regular forms don't all for the delete method https://docs.remix.run/v0.17/api/remix/#form-method
-          type="hidden"
-          name="_method"
-          value="delete"
-        />
-        <button
-          type="submit"
-          className="col-start-2 border-2 border-red-700 hover:ring-1 hover:ring-red-200"
-        >
-          Delete
-        </button>
-      </form>
+      <DeleteCharacter name={character.name} />
     </main>
   )
 }
 
 // TODO: look into whether this is correct accessability-wise
 function Perks({ perks }: { perks: Omit<Perk, 'characterId'>[] }) {
+  let disabled = !!usePendingFormSubmit()
   return (
     <>
       {perks.map(({ name, available, acquired }) => (
@@ -249,6 +241,7 @@ function Perks({ perks }: { perks: Omit<Perk, 'characterId'>[] }) {
               type="checkbox"
               name={`perk-${name}-${idx}`}
               defaultChecked={idx < acquired}
+              disabled={disabled}
             />
           ))}
 
@@ -259,5 +252,24 @@ function Perks({ perks }: { perks: Omit<Perk, 'characterId'>[] }) {
         </fieldset>
       ))}
     </>
+  )
+}
+
+function DeleteCharacter({ name }: { name: Character['name'] }) {
+  let pendingForm = usePendingFormSubmit()
+  let disabled = !!pendingForm
+  let pendingDelete = !!pendingForm && pendingForm.data.has('deleteCharacter')
+  return (
+    <Form method="delete" className="mt-4 grid grid-cols-2 gap-2 items-center">
+      <input type="hidden" name="deleteCharacter" value={name} />
+      <Button
+        type="submit"
+        variant="delete"
+        className="col-start-2"
+        disabled={disabled}
+      >
+        {pendingDelete ? `Deleting ${name}...` : 'Delete'}
+      </Button>
+    </Form>
   )
 }
