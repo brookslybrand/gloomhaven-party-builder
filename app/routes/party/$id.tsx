@@ -36,7 +36,7 @@ export let loader: LoaderFunction = async ({ params }) => {
     return characters.map(({ id, name }) => ({ id, name }))
   })
 
-  const result = {
+  let result = {
     party: await partyPromise,
     characters: await charactersPromise,
   }

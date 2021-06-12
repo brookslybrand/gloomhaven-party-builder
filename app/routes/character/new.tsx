@@ -22,12 +22,12 @@ export let action: ActionFunction = async ({ request }) => {
     throw new Error(`Class ${classValue} is not allowed`)
   }
 
-  const perks = classPerks.get(classValue)
+  let perks = classPerks.get(classValue)
   if (perks === undefined) {
     throw new Error(`Perks net setup for class ${classValue}`)
   }
 
-  const character = await prisma.character.create({
+  let character = await prisma.character.create({
     data: {
       name,
       class: classValue,

@@ -129,7 +129,7 @@ async function updatePerks(characterId: string, body: URLSearchParams) {
     }
   }
 
-  const updatesPerks = Promise.all(
+  let updatesPerks = Promise.all(
     perks.map((perk) => {
       return prisma.perk.update({
         where: { characterId_name: { characterId, name: perk.name } },

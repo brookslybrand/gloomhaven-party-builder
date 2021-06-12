@@ -13,7 +13,7 @@ export let action: ActionFunction = async ({ request }) => {
     throw new Error(`Name is required`)
   }
 
-  const party = await prisma.party.create({
+  let party = await prisma.party.create({
     data: { name },
   })
 

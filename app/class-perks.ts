@@ -120,8 +120,8 @@ function sortPerks(classValue: Class, perks: Pick<Perk, 'name'>[]) {
   let perkOrder = new Map(originalPerks.map(({ name }, idx) => [name, idx]))
   let perksCopy = [...perks]
   perksCopy.sort((a, b) => {
-    const aIdx = perkOrder.get(a.name) ?? -Infinity
-    const bIdx = perkOrder.get(b.name) ?? Infinity
+    let aIdx = perkOrder.get(a.name) ?? -Infinity
+    let bIdx = perkOrder.get(b.name) ?? Infinity
     return aIdx - bIdx
   })
   return perksCopy
