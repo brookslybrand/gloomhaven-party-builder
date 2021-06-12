@@ -1,7 +1,6 @@
-import { redirect } from 'remix'
-import clsx from 'clsx'
+import { Form, redirect, usePendingFormSubmit } from 'remix'
 
-import { TextInput } from '../../components'
+import { Button, TextInput } from '../../components'
 import { prisma } from '../../db'
 import { classPerks } from '../../class-perks'
 import { capitalize } from '../../utils'
@@ -52,9 +51,12 @@ function isAllowedClass(classValue: unknown): classValue is Class {
 }
 
 export default function NewCharacter() {
+  let pendingForm = usePendingFormSubmit()
+  let disabled = !!pendingForm
+
   return (
     <main className="max-w-max border border-gray-700 mx-auto mt-12 p-4">
-      <form
+      <Form
         method="post"
         className="grid grid-cols-2 gap-y-2 gap-x-1 items-center"
       >
@@ -64,6 +66,7 @@ export default function NewCharacter() {
           required
           id="class"
           name="class"
+          disabled={disabled}
         >
           {Object.values(Class).map((classValue) => (
             <option key={classValue} value={classValue}>
@@ -73,15 +76,12 @@ export default function NewCharacter() {
         </select>
 
         <label htmlFor="name">Name: </label>
-        <TextInput id="name" name="name" />
+        <TextInput id="name" name="name" disabled={disabled} />
 
-        <button
-          type="submit"
-          className="col-start-2 border border-green-700 hover:ring-1 hover:ring-green-200"
-        >
-          Submit
-        </button>
-      </form>
+        <Button type="submit" disabled={disabled}>
+          {pendingForm ? `Creating ${pendingForm.data.get('name')}` : 'Submit'}
+        </Button>
+      </Form>
     </main>
   )
 }

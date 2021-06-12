@@ -1,8 +1,10 @@
-import type { Character, Party } from '@prisma/client'
-import type { MetaFunction, LoaderFunction } from 'remix'
 import { useRouteData } from 'remix'
 import { Link } from 'react-router-dom'
 import { prisma } from '../db'
+
+import type { Character, Party } from '@prisma/client'
+import type { MetaFunction, LoaderFunction } from 'remix'
+import type { LinkProps } from 'react-router-dom'
 
 export let meta: MetaFunction = () => {
   return {
@@ -34,18 +36,13 @@ export default function Index() {
   let { parties, characters } = useRouteData<Data>()
 
   return (
-    <div className="mx-auto max-w-max p-4">
+    <div className="mx-auto max-w-max py-8 px-4">
       <header>
-        <h1 className="text-6xl">Gloomhaven Party Builder</h1>
+        <h1 className="text-4xl text-gray-900">Gloomhaven Party Builder</h1>
       </header>
-      <main className="space-y-4 mt-4">
+      <main className="mt-8 space-y-4">
         <section>
-          <Link
-            className="block text-xl text-blue-700 hover:text-blue-200"
-            to="party/new"
-          >
-            Create a new party
-          </Link>
+          <CreateLink to="party/new">Create a new party</CreateLink>
           {parties.length ? (
             parties.map(({ id, name }) => {
               return (
@@ -69,12 +66,7 @@ export default function Index() {
         <hr className="w-full border-t-1 border-gray-800" />
 
         <section>
-          <Link
-            className="block text-xl text-blue-700 hover:text-blue-200"
-            to="character/new"
-          >
-            Create a new character
-          </Link>
+          <CreateLink to="character/new">Create a new character</CreateLink>
           {characters.length > 0 ? (
             characters.map(({ id, name }) => {
               return (
@@ -96,5 +88,32 @@ export default function Index() {
         </section>
       </main>
     </div>
+  )
+}
+
+function CreateLink({ children, ...props }: LinkProps) {
+  return (
+    <Link
+      className="max-w-max flex items-center text-2xl text-gray-800 hover:text-green-600"
+      {...props}
+    >
+      {/* Plus from heroicons: https://heroicons.com/ */}
+      <svg
+        aria-hidden
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+      </svg>
+      {children}
+    </Link>
   )
 }

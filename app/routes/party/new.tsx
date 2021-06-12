@@ -1,7 +1,7 @@
-import { redirect } from 'remix'
+import { Form, redirect, usePendingFormSubmit, useRouteData } from 'remix'
 
 import { prisma } from '../../db'
-import { TextInput } from '../../components'
+import { Button, TextInput } from '../../components'
 
 import type { ActionFunction } from 'remix'
 
@@ -21,22 +21,31 @@ export let action: ActionFunction = async ({ request }) => {
 }
 
 export default function NewParty() {
+  console.log(useRouteData())
+  let pendingForm = usePendingFormSubmit()
+
+  let disabled = !!pendingForm
+
   return (
     <main className="max-w-max border border-gray-700 mx-auto mt-12 p-4">
-      <form
+      <Form
         method="post"
         className="grid grid-cols-2 gap-y-2 gap-x-1 items-center"
       >
         <label htmlFor="name">Name: </label>
-        <TextInput required id="name" name="name" />
+        <TextInput required id="name" name="name" disabled={disabled} />
 
-        <button
-          type="submit"
-          className="col-start-2 border border-green-700 hover:ring-1 hover:ring-green-200"
+        <Button
+          className="
+            col-start-2 border border-green-700 hover:ring-1 hover:ring-green-200
+          disabled:text-gray-600 disabled:border-gray-700 disabled:hover:ring-0 disabled:cursor-wait"
+          disabled={disabled}
         >
-          Submit
-        </button>
-      </form>
+          {pendingForm
+            ? `Creating ${pendingForm.data.get('name')}...`
+            : 'Submit'}
+        </Button>
+      </Form>
     </main>
   )
 }
