@@ -1,6 +1,6 @@
 import { Form, redirect, usePendingFormSubmit } from 'remix'
 
-import { Button, TextInput } from '../../components'
+import { Button, Select, TextInput } from '../../components'
 import { prisma } from '../../db'
 import { classPerks } from '../../class-perks'
 import { capitalize } from '../../utils'
@@ -61,24 +61,18 @@ export default function NewCharacter() {
         className="grid grid-cols-2 gap-y-2 gap-x-1 items-center"
       >
         <label htmlFor="class">Class: </label>
-        <select
-          className="capitalize border border-gray-700 hover:ring hover:ring-gray-200"
-          required
-          id="class"
-          name="class"
-          disabled={disabled}
-        >
+        <Select required id="class" name="class" disabled={disabled}>
           {Object.values(Class).map((classValue) => (
             <option key={classValue} value={classValue}>
               {capitalize(classValue)}
             </option>
           ))}
-        </select>
+        </Select>
 
         <label htmlFor="name">Name: </label>
         <TextInput id="name" name="name" disabled={disabled} />
 
-        <Button type="submit" disabled={disabled}>
+        <Button className="col-start-2" type="submit" disabled={disabled}>
           {pendingForm ? `Creating ${pendingForm.data.get('name')}` : 'Submit'}
         </Button>
       </Form>

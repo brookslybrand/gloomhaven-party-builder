@@ -1,6 +1,6 @@
-import { redirect, useRouteData, json } from 'remix'
+import { redirect, useRouteData, json, usePendingFormSubmit } from 'remix'
 
-import { TextInput } from '../../components'
+import { Button, Form, Select, TextInput, getMethod } from '../../components'
 import { prisma } from '../../db'
 
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix'
@@ -54,7 +54,11 @@ export let action: ActionFunction = async ({ request, params }) => {
   let body = new URLSearchParams(await request.text())
 
   // we use hidden method names so this app can run without JS
-  let method = (body.get('_method') ?? request.method).toLowerCase()
+  let method = getMethod(body, request)
+
+  await new Promise((res) => {
+    setTimeout(res, 2000)
+  })
 
   switch (method) {
     case 'delete': {
@@ -124,22 +128,24 @@ export let action: ActionFunction = async ({ request, params }) => {
 
 export default function PartyComponent() {
   let { party } = useRouteData<Data>()
+  let pendingForm = usePendingFormSubmit()
   if (party === null) {
     return <h1>No party found</h1>
   }
 
+  let disabled = !!pendingForm
+  let pendingSubmit = !!pendingForm && pendingForm.data.has('name')
+
   return (
     <main className="max-w-max border border-gray-700 mx-auto mt-12 p-4">
-      <form
-        method="post"
-        className="grid grid-cols-2 gap-y-2 gap-x-1 items-center"
-      >
+      <Form method="post" className="grid grid-cols-2 gap-2 items-center">
         <label htmlFor="name">Name: </label>
         <TextInput
           required
           id="name"
           name="name"
           defaultValue={party.name ?? ''}
+          disabled={disabled}
         />
 
         <label htmlFor="location">Location: </label>
@@ -147,16 +153,23 @@ export default function PartyComponent() {
           id="location"
           name="location"
           defaultValue={party.location ?? ''}
+          disabled={disabled}
         />
 
         <label htmlFor="notes">Notes: </label>
-        <TextInput id="notes" name="notes" defaultValue={party.notes ?? ''} />
+        <TextInput
+          id="notes"
+          name="notes"
+          defaultValue={party.notes ?? ''}
+          disabled={disabled}
+        />
 
         <label htmlFor="achievements">Achievements: </label>
         <TextInput
           id="achievements"
           name="achievements"
           defaultValue={party.achievements ?? ''}
+          disabled={disabled}
         />
 
         <label htmlFor="reputation">Reputation: </label>
@@ -167,36 +180,43 @@ export default function PartyComponent() {
           min={-20}
           max={20}
           defaultValue={party.reputation ?? ''}
+          disabled={disabled}
         />
 
-        <button
-          type="submit"
-          className="col-start-2 border border-green-700 hover:ring-1 hover:ring-green-200"
-        >
-          Submit
-        </button>
-      </form>
+        <Button type="submit" className="col-start-2" disabled={disabled}>
+          {pendingSubmit
+            ? `Updating ${pendingForm?.data.get('name')}...`
+            : 'Submit'}
+        </Button>
+      </Form>
       <CharacterSelect />
-      <form method="post" className="mt-4 grid grid-cols-2 items-center">
-        <input
-          // need this hidden input because regular forms don't all for the delete method https://docs.remix.run/v0.17/api/remix/#form-method
-          type="hidden"
-          name="_method"
-          value="delete"
-        />
-        <button
-          type="submit"
-          className="col-start-2 border-2 border-red-700 hover:ring-1 hover:ring-red-200"
-        >
-          Delete
-        </button>
-      </form>
+      <DeleteParty name={party.name} />
     </main>
+  )
+}
+
+function DeleteParty({ name }: { name: Party['name'] }) {
+  let pendingForm = usePendingFormSubmit()
+  let disabled = !!pendingForm
+  let pendingDelete = !!pendingForm && pendingForm.data.has('deleteParty')
+  return (
+    <Form method="delete" className="mt-4 grid grid-cols-2 gap-2 items-center">
+      <input type="hidden" name="deleteParty" value={name} />
+      <Button
+        type="submit"
+        variant="delete"
+        className="col-start-2"
+        disabled={disabled}
+      >
+        {pendingDelete ? `Deleting ${name}...` : 'Delete'}
+      </Button>
+    </Form>
   )
 }
 
 function CharacterSelect() {
   let { party, characters } = useRouteData<Data>()
+  let pendingForm = usePendingFormSubmit()
 
   if (party === null) return null
 
@@ -205,61 +225,68 @@ function CharacterSelect() {
     ({ id }) => !partyMembersIds.has(id)
   )
 
+  let disabled = !!pendingForm
+  let pendingAdd = !!pendingForm && pendingForm.data.has('addCharacter')
+
   return (
     <section className="mt-2 space-y-2">
       {party.members.map(({ id, name }) => {
-        let htmlId = `delete-${id}`
+        let htmlName = `delete-${id}`
+        let pendingDelete = !!pendingForm && pendingForm.data.has(htmlName)
         return (
-          <form
-            key={htmlId}
-            method="post"
-            className="grid grid-cols-2 gap-y-2 items-center"
+          <Form
+            key={htmlName}
+            method="delete"
+            className="grid grid-cols-2 gap-2 items-center"
           >
-            <input
-              // need this hidden input because regular forms don't all for the delete method https://docs.remix.run/v0.17/api/remix/#form-method
-              type="hidden"
-              name="_method"
-              value="delete"
-              className="hidden"
-            />
             <p>{name}</p>
-            <button
+            <input type="hidden" name={htmlName} value={name} />
+            <Button
+              className="col-start-2"
+              variant="delete"
               type="submit"
-              name="deleteCharacter"
               value={id}
-              className="col-start-2 border-2 border-red-700 hover:ring-1 hover:ring-red-200"
-              aria-label={`Remove ${name} from party`}
+              aria-label={`Remove ${name} from the party`}
+              disabled={disabled}
             >
-              Remove
-            </button>
-          </form>
+              {pendingDelete ? `Removing ${name}...` : 'Remove'}
+            </Button>
+          </Form>
         )
       })}
+
       {availableCharacters.length > 0 ? (
-        <form
+        <Form
           name="testing"
           method="post"
-          className="grid grid-cols-2 gap-y-2 items-center"
+          className="grid grid-cols-2 gap-2 items-center"
         >
-          <select
+          <Select
             aria-label="select character"
             id="addCharacter"
             name="addCharacter"
+            disabled={disabled}
           >
             {availableCharacters.map(({ id, name }) => (
               <option key={id} value={id}>
                 {name}
               </option>
             ))}
-          </select>
-          <button
-            type="submit"
-            className="col-start-2 border border-green-700 hover:ring-1 hover:ring-green-200"
-          >
-            Add character
-          </button>
-        </form>
+          </Select>
+          <Button className="col-start-2" type="submit" disabled={disabled}>
+            {pendingAdd
+              ? `Adding ${findNameById(
+                  pendingForm?.data.get('addCharacter') ?? '',
+                  availableCharacters
+                )}...`
+              : 'Add character'}
+          </Button>
+        </Form>
       ) : null}
     </section>
   )
+}
+
+function findNameById(id: any, availableCharacters: Data['characters']) {
+  return availableCharacters.find((c) => c.id === id)?.name ?? ''
 }

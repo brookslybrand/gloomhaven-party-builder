@@ -35,12 +35,7 @@ export default function NewParty() {
         <label htmlFor="name">Name: </label>
         <TextInput required id="name" name="name" disabled={disabled} />
 
-        <Button
-          className="
-            col-start-2 border border-green-700 hover:ring-1 hover:ring-green-200
-          disabled:text-gray-600 disabled:border-gray-700 disabled:hover:ring-0 disabled:cursor-wait"
-          disabled={disabled}
-        >
+        <Button className="col-start-2" disabled={disabled}>
           {pendingForm
             ? `Creating ${pendingForm.data.get('name')}...`
             : 'Submit'}
