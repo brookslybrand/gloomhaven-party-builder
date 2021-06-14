@@ -256,11 +256,7 @@ function CharacterSelect() {
       })}
 
       {availableCharacters.length > 0 ? (
-        <Form
-          name="testing"
-          method="post"
-          className="grid grid-cols-2 gap-2 items-center"
-        >
+        <Form method="post" className="grid grid-cols-2 gap-2 items-center">
           <Select
             aria-label="select character"
             id="addCharacter"

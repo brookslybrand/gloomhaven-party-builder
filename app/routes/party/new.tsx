@@ -1,4 +1,4 @@
-import { Form, redirect, usePendingFormSubmit, useRouteData } from 'remix'
+import { Form, redirect, usePendingFormSubmit } from 'remix'
 
 import { prisma } from '../../db'
 import { Button, TextInput } from '../../components'
@@ -21,7 +21,6 @@ export let action: ActionFunction = async ({ request }) => {
 }
 
 export default function NewParty() {
-  console.log(useRouteData())
   let pendingForm = usePendingFormSubmit()
 
   let disabled = !!pendingForm
