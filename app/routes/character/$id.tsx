@@ -1,6 +1,6 @@
 import { json, redirect, usePendingFormSubmit, useRouteData } from 'remix'
 
-import { Button, Form, TextInput } from '../../components'
+import { Button, Form, getMethod, TextInput } from '../../components'
 import { prisma } from '../../db'
 import { sortPerks } from '../../class-perks'
 import { capitalize } from '../../utils'
@@ -46,7 +46,7 @@ export let action: ActionFunction = async ({ request, params, context }) => {
   let id = params.id
   let body = new URLSearchParams(await request.text())
   // we use hidden method names so this app can run without JS
-  let method = (body.get('_method') ?? request.method).toLowerCase()
+  let method = getMethod(body, request)
 
   switch (method) {
     case 'delete': {

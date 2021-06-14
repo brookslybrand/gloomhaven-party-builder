@@ -62,12 +62,15 @@ export let action: ActionFunction = async ({ request, params }) => {
 
   switch (method) {
     case 'delete': {
-      if (body.has('deleteCharacter')) {
+      let removeName = [...body.keys()].find((key) => key.startsWith('remove-'))
+
+      if (removeName !== undefined) {
+        const characterId = body.get(removeName) ?? ''
         await prisma.party.update({
           where: { id },
           data: {
             members: {
-              disconnect: { id: body.get('deleteCharacter') ?? '' },
+              disconnect: { id: characterId },
             },
           },
         })
@@ -231,7 +234,7 @@ function CharacterSelect() {
   return (
     <section className="mt-2 space-y-2">
       {party.members.map(({ id, name }) => {
-        let htmlName = `delete-${id}`
+        let htmlName = `remove-${id}`
         let pendingDelete = !!pendingForm && pendingForm.data.has(htmlName)
         return (
           <Form
@@ -239,8 +242,8 @@ function CharacterSelect() {
             method="delete"
             className="grid grid-cols-2 gap-2 items-center"
           >
+            <input type="hidden" name={htmlName} value={id} />
             <p>{name}</p>
-            <input type="hidden" name={htmlName} value={name} />
             <Button
               className="col-start-2"
               variant="delete"
@@ -249,7 +252,12 @@ function CharacterSelect() {
               aria-label={`Remove ${name} from the party`}
               disabled={disabled}
             >
-              {pendingDelete ? `Removing ${name}...` : 'Remove'}
+              {pendingDelete
+                ? `Removing ${findNameById(
+                    pendingForm?.data.get(htmlName),
+                    characters
+                  )}...`
+                : 'Remove'}
             </Button>
           </Form>
         )
