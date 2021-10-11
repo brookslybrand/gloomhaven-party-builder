@@ -4,6 +4,7 @@ import { Outlet, NavLink } from 'react-router-dom'
 import VisuallyHidden from '@reach/visually-hidden'
 
 import tailwindUrl from './styles/app.css'
+import clsx from 'clsx'
 
 export let links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: tailwindUrl }]
@@ -53,8 +54,9 @@ export function ErrorBoundary({ error }: { error: Error }) {
 function GoHome() {
   return (
     <NavLink
-      activeClassName="hidden"
-      className="absolute left-4 top-4"
+      className={({ isActive }) =>
+        clsx('absolute left-4 top-4', { hidden: isActive })
+      }
       to="/"
       end
     >
