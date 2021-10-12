@@ -48,6 +48,10 @@ export let action: ActionFunction = async ({ request, params, context }) => {
   // we use hidden method names so this app can run without JS
   let method = getMethod(body, request)
 
+  if (id === undefined) {
+    throw new Error(`No character ID provided`)
+  }
+
   switch (method) {
     case 'delete': {
       let deletePerks = prisma.perk.deleteMany({ where: { characterId: id } })
